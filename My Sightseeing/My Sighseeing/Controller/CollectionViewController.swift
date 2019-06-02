@@ -118,9 +118,9 @@ class CollectionViewController: UIViewController {
                 if ((response.query?.pages?.values.count)!) > 0 {
                     for resultPhoto in (response.query?.pages?.values)! {
                         
-                        if  resultPhoto.imageinfo != nil {
+                        if let url = resultPhoto.imageinfo {
                             
-                            responseArray.append(resultPhoto.imageinfo![0])
+                            responseArray.append(url[0])
                         }
                         
                     }
@@ -149,11 +149,12 @@ class CollectionViewController: UIViewController {
             
             let photoToStore = Photo(context: self.dataController.context)
             
-            if photo.url != nil {
+            if let photo = photo.url  {
                 photoToStore.pin = pin
-                photoToStore.url = photo.url
-                photoToStore.photoData = try? Data(contentsOf: URL(string: photo.url!)!)
-                
+                photoToStore.url = photo
+                if let url = URL(string: photo) {
+                photoToStore.photoData = try? Data(contentsOf: url)
+                }
             }
             
             try? self.dataController.context.save()
@@ -166,7 +167,9 @@ class CollectionViewController: UIViewController {
         
         DispatchQueue.global(qos: .background).async {
             var data = Data()
-            data = Data(referencing: photo.photoData! as NSData)
+            if let image = photo.photoData {
+            data = Data(referencing: image as NSData)
+            }
             
             DispatchQueue.main.async {
                 cell.imageView.image = UIImage(data: data)
